@@ -39,11 +39,83 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const bodyParser = require("body-parser");
 
+const port = 3000;
+let todos = [];
+let todoId = 0;
 const app = express();
 
 app.use(bodyParser.json());
+
+// 1.GET /todos - Retrieve all todo items
+app.get("/todos", (req, res) => {
+  res.status(200).json(todos);
+});
+
+// 2.GET /todos/:id - Retrieve a specific todo item by ID
+app.get("/todos/:id", (req, res) => {
+  const { id } = req.params;
+  const currentTodo = todos?.find((todo) => todo?.id === +id);
+  if (currentTodo?.id) {
+    res.status(200).json(currentTodo);
+  } else {
+    res.status(404).json({ error: `Todo not found with id ${id}` });
+  }
+});
+
+// 3. POST /todos - Create a new todo item
+app.post("/todos", (req, res) => {
+  const { title = "", description = "", completed = false } = req?.body;
+
+  // check for required params
+  if (title.length <= 0 || description.length <= 0) {
+    res.status(400).json({ error: "Title or Description is not provided" });
+  }
+  const id = ++todoId;
+  const newTodo = { id, title, description, completed };
+  todos.push(newTodo);
+
+  res.status(201).json({ id });
+});
+
+// 4. PUT /todos/:id - Update an existing todo item by ID
+app.put("/todos/:id", (req, res) => {
+  const { id } = req.params;
+  const currentTodo = todos?.find((todo) => todo?.id === +id);
+  const { title, description, completed } = req?.body;
+
+  if (currentTodo?.id) {
+    if (title) {
+      currentTodo.title = title;
+    }
+    if (description) {
+      currentTodo.description = title;
+    }
+    if (completed !== undefined) {
+      currentTodo.completed = completed;
+    }
+    res.status(200).json(currentTodo);
+  } else {
+    res.status(404).json({ error: `Todo not found with id ${id}` });
+  }
+});
+
+// 5. DELETE /todos/:id - Delete a todo item by ID
+app.delete("/todos/:id", (req, res) => {
+  const { id } = req.params;
+  const currentTodo = todos?.find((todo) => todo?.id === +id);
+  if (currentTodo?.id) {
+    todos = todos?.filter((todo) => todo?.id !== +id);
+    res.status(200).json({ message: "Todo deleted successfully" });
+  } else {
+    res.status(404).json({ error: `Todo not found with id ${id}` });
+  }
+});
+
+app.listen(port, () => {
+  console.log(`Running on ${port}`);
+});
 
 module.exports = app;
