@@ -76,7 +76,6 @@ app.post("/todos", (req, res) => {
   const id = ++todoId;
   const newTodo = { id, title, description, completed };
   todos.push(newTodo);
-
   res.status(201).json({ id });
 });
 
@@ -87,15 +86,9 @@ app.put("/todos/:id", (req, res) => {
   const { title, description, completed } = req?.body;
 
   if (currentTodo?.id) {
-    if (title) {
-      currentTodo.title = title;
-    }
-    if (description) {
-      currentTodo.description = title;
-    }
-    if (completed !== undefined) {
-      currentTodo.completed = completed;
-    }
+    if (title) currentTodo.title = title;
+    if (description) currentTodo.description = description;
+    if (completed !== undefined) currentTodo.completed = completed;
     res.status(200).json(currentTodo);
   } else {
     res.status(404).json({ error: `Todo not found with id ${id}` });
