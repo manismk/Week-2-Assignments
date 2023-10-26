@@ -29,9 +29,62 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
+const bodyParser = require("body-parser");
+
 const PORT = 3000;
 const app = express();
+let users = [];
+let userId = 0;
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+app.use(bodyParser.json());
+
+// 1. POST /signup - User Signup
+app.post("/signup", (req, res) => {
+  const { email, firstName, lastName, password } = req?.body;
+  const user = users.find((user) => user.email === email);
+  if (user?.id) {
+    res.status(400).send("Email is already present");
+    return;
+  }
+  const id = ++userId;
+  const newUser = { id, email, password, firstName, lastName };
+  users.push(newUser);
+  res.status(201).send("Signup successful");
+});
+
+// 2. POST /login - User Login
+app.post("/login", (req, res) => {
+  const { email, password } = req?.body;
+  const user = users.find((user) => user.email === email);
+  if (user?.id && user?.password === password) {
+    res.status(200).send({
+      firstName: user?.firstName,
+      lastName: user?.lastName,
+      email: user?.email,
+      id: user?.id,
+      authToken: new Date(),
+    });
+    return;
+  }
+  res.status(401).send("Unauthorized");
+});
+
+app.get("/data", (req, res) => {
+  const { email, password } = req.headers;
+  const user = users.find((user) => user.email === email);
+  if (user?.id && user?.password === password) {
+    const usersWithoutPassword = users?.map(({ password, ...rest }) => ({
+      ...rest,
+    }));
+    res.status(200).send({ users: usersWithoutPassword });
+    return;
+  }
+  res.status(401).send("Unauthorized");
+});
+
+app.listen(PORT, () => {
+  console.log(`Running on ${PORT}`);
+});
 
 module.exports = app;
